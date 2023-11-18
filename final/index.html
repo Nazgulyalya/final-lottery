@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lottery DApp</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script type="text/javascript">
+        // Connect to the Ethereum node
+        if (typeof web3 !== 'undefined') {
+            web3 = new Web3(web3.currentProvider);
+        } else {
+            // Handle the case where the user doesn't have a web3 provider (MetaMask)
+            web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:8545"));
+        }
+
+        // Set the default account (you might want to improve this for a production environment)
+        web3.eth.defaultAccount = web3.eth.accounts[0];
+
+        // Replace the following with your actual ABI (between the square brackets)
+        const contractABI = [
+  {
+    "constant": true,
+    "inputs": [],
+    "name": "getPlayers",
+    "outputs": [{"name": "", "type": "address[]"}],
+    "payable": false,
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "constant": false,
+    "inputs": [],
+    "name": "enter",
+    "outputs": [],
+    "payable": true,
+    "stateMutability": "payable",
+    "type": "function"
+  }
+];
+
+
+        // -contract-address' with the actual address of your deployed smart contract
+        const contractAddress = '0xb9049f4b9fcc3a68927fa04b58603fb8d429f10cae057a3a129bf293e35c12f2';
+
+        // Instantiate the smart contract with the ABI and contract address
+        const lotteryContract = new web3.eth.Contract(contractABI, contractAddress);
+
+        // Function to display players
+        async function displayPlayers() {
+            const players = await lotteryContract.methods.getPlayers().call();
+            document.getElementById('players').innerHTML = players.join('<br>');
+        }
+
+        // Function to participate in the lottery
+        async function participate() {
+            // Set the desired amount in Ether to participate
+            const valueToSend = web3.utils.toWei('0.1', 'ether');
+            await lotteryContract.methods.enter().send({ from: web3.eth.defaultAccount, value: valueToSend });
+            displayPlayers();
+        }
+
+        // Function to pick a winner
+        async function pickWinner() {
+            await lotteryContract.methods.pickWinner().send({ from: web3.eth.defaultAccount });
+            displayPlayers();
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Smart contract Lottery</h1>
+
+    <!-- Buttons to interact with the smart contract -->
+    <button onclick="participate()">Participate</button>
+    <button onclick="pickWinner()">Pick Winner</button>
+
+    <!-- Display the list of players -->
+    <h3>Players:</h3>
+    <div id="players"></div>
+
+</body>
+</html>
